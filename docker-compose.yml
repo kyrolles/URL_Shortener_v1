@@ -1,0 +1,32 @@
+services:
+  url_shortener:
+    build: .
+    ports:
+      - "5000:5000"
+    volumes:
+      - db_shortener_url:/opt/app/data
+
+  prometheus:
+    image: prom/prometheus:v3
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    depends_on:
+      - url_shortener
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=4kadmin
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
+    depends_on:
+      - prometheus
+
+volumes:
+  db_shortener_url:
