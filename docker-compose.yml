@@ -16,7 +16,7 @@ services:
       - url_shortener
 
   grafana:
-    image: grafana/grafana:latest
+    image: grafana/grafana:13.0.1-security-01
     ports:
       - "3000:3000"
     environment:
