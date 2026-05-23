@@ -13,8 +13,8 @@ RUN mkdir -p /opt/app/data && chown -R kyrolles:kyrolles /opt/app
 USER kyrolles
 WORKDIR /opt/app
 
-# Copy application code
-COPY --chown=kyrolles:kyrolles app.py .
+# Copy application code (see .dockerignore for excluded files)
+COPY --chown=kyrolles:kyrolles . .
 
 EXPOSE 5000
 
