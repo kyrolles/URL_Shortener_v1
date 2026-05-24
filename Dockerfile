@@ -14,7 +14,7 @@ USER kyrolles
 WORKDIR /opt/app
 
 # Copy application code
-COPY --chown=kyrolles:kyrolles app.py .
+COPY --chown=kyrolles:kyrolles . .
 
 EXPOSE 5000
 

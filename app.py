@@ -1,7 +1,5 @@
 import sqlite3
-import time
-
-from flask import Flask, request, jsonify, redirect
+from flask import Flask, request, jsonify, redirect, render_template
 from urllib.parse import urlparse
 from hashids import Hashids
 from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
@@ -12,7 +10,7 @@ app = Flask(__name__)
 # Hashids encoder — salt must stay the same forever, or old codes break
 hashids = Hashids(salt="my-secret-salt", min_length=6)
 
-# Path to the SQLite database file (created automatically)
+# Path to the SQLite database file
 DB_PATH = "data/urls.db"
 
 
@@ -53,8 +51,8 @@ def metrics():
 
 @app.route("/")
 def index():
-    """Health-check route — confirms the server is alive."""
-    return "Server is running"
+    """Serve the URL-shortener web interface."""
+    return render_template("index.html")
 
 
 @app.route("/shorten", methods=["POST"])
@@ -80,19 +78,14 @@ def shorten():
         # --- insert into DB and generate short code ----------------------------
         conn = get_db()
 
-        # Step 1: insert the URL (short_code is NULL for now)
         cursor = conn.execute(
             "INSERT INTO urls (original_url) VALUES (?)",
             (url,)
         )
 
-        # Step 2: SQLite gives us the auto-generated id
         row_id = cursor.lastrowid
-
-        # Step 3: encode that id into a short code
         short_code = hashids.encode(row_id)
 
-        # Step 4: update the same row with the short code
         conn.execute(
             "UPDATE urls SET short_code = ? WHERE id = ?",
             (short_code, row_id)
@@ -126,7 +119,7 @@ def redirect_to_url(short_code):
         return redirect(row["original_url"], code=302)
 
 
-# Entry point: only runs when you execute this file directly
+# Entry pointy
 if __name__ == "__main__":
     init_db()          # create the table before the first request
     app.run(host="0.0.0.0", port=5000)

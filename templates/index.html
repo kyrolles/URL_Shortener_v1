@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>URL Shortener</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+
+<body>
+
+  <div class="center-box">
+
+    <!-- Title -->
+    <h1 class="title">URL Shortener</h1>
+
+    <!-- Input bar + button -->
+    <form id="shorten-form" class="search-bar">
+      <input id="url-input" type="url" placeholder="Paste your long URL here" required />
+      <button id="shorten-btn" type="submit">Shorten URL</button>
+    </form>
+
+    <!-- Results table (hidden until first result) -->
+    <table id="results-table" class="results-table">
+      <thead>
+        <tr>
+          <th>Original URL</th>
+          <th>Shortened URL</th>
+        </tr>
+      </thead>
+      <tbody id="results-body"></tbody>
+    </table>
+
+  </div>
+
+  <script>
+    var form = document.getElementById('shorten-form');
+    var urlInput = document.getElementById('url-input');
+    var btn = document.getElementById('shorten-btn');
+    var table = document.getElementById('results-table');
+    var tbody = document.getElementById('results-body');
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var url = urlInput.value.trim();
+      if (!url) return;
+
+      btn.disabled = true;
+      btn.textContent = 'Working...';
+
+      fetch('/shorten', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: url })
+      })
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
+          if (data.error) {
+            alert(data.error);
+          } else {
+            // Show the table and add a row
+            table.style.display = 'table';
+            var row = document.createElement('tr');
+            row.innerHTML =
+              '<td class="original-url">' + url + '</td>' +
+              '<td><a href="' + data.short_url + '" target="_blank">' + data.short_url + '</a></td>';
+            tbody.prepend(row);
+            urlInput.value = '';
+          }
+        })
+        .catch(function () { alert('Could not connect to the server.'); })
+        .finally(function () {
+          btn.disabled = false;
+          btn.textContent = 'Shorten URL';
+        });
+    });
+  </script>
+
+</body>
+
+</html>
